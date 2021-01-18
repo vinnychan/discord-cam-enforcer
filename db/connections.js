@@ -1,16 +1,17 @@
 const Keyv = require('keyv');
+const Logger = require('../logger');
 
 let camRequiredChannels = null;
 let global = null;
 
-const init = (logger) => {
+const init = () => {
     if (!global) {
         global = new Keyv('redis://localhost:6379');
-        global.on('error', err => logger.error('global connection error:', err));
+        global.on('error', err => Logger.error('global connection error:', err));
     }
     if (!camRequiredChannels) {
         camRequiredChannels = new Keyv('redis://localhost:6379', { namespace: 'requireCam' });
-        camRequiredChannels.on('error', err => logger.error('camRequiredChannels connection error:', err));
+        camRequiredChannels.on('error', err => Logger.error('camRequiredChannels connection error:', err));
     }
 };
 

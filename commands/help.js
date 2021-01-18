@@ -14,7 +14,6 @@ module.exports = {
             data.push('List of commands:');
             data.push(commands.map(command => command.name).join('\n'));
             data.push(`\nYou can send \`${PREFIX}help [command name]\` to get info on a specific command!`);
-            // message.channel.send(data, { split: true });
         } else {
             const name = args[0].toLowerCase();
             const command = commands.get(name) || commands.find(c => c.aliases && c.aliases.includes(name));
@@ -29,7 +28,7 @@ module.exports = {
             if (command.description) data.push(`**Description:** ${command.description}`);
             if (command.usage) data.push(`**Usage:** ${PREFIX}${command.name} ${command.usage}`);
         }
-        // message.channel.send(data, { split: true });
+
         UsageHelp.send(message.channel, data);
     },
 };

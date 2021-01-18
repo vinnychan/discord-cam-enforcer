@@ -3,16 +3,9 @@ const Discord = require('discord.js');
 const { BOT_TOKEN, PREFIX, DEFAULT_CAM_TIMEOUT } = require('./config.json');
 const UsageHelp = require('./util/usageHelp');
 const Error = require('./util/error');
-const Winston = require('winston');
 const DB = require('./db/connections');
 
-const logger = Winston.createLogger({
-    transports: [
-        new Winston.transports.Console(),
-        // new Winston.transports.File({ filename: 'log' }), // writes to file
-    ],
-    format: Winston.format.printf(log => `[${log.level.toUpperCase()}] - ${log.message}`),
-});
+const Logger = require('./logger').get();
 
 // init DBs
 DB.init();
@@ -52,7 +45,7 @@ client.on('message', function(message) {
     try {
         command.execute(message, args);
     } catch (error) {
-        logger.log('error', error);
+        Logger.log('error', error);
         Error.sendCmdError(message.channel, command.name);
     }
 });
@@ -70,9 +63,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                     // check if member is still connected to voice before dm'ing
                     try {
                         await newState.member.voice.kick();
-                        newState.member.send('please have camera on when in auntie gossip');
+                        newState.member.send('Please have camera on when in auntie gossip');
                     } catch (error) {
-                        logger.log('error', `Unable to kick user: ${newState.member}`);
+                        Logger.log('error', `Unable to kick user: ${newState.member}`);
                     }
                 }
             }, camTimeout || DEFAULT_CAM_TIMEOUT);
@@ -80,11 +73,11 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
 });
 
-client.on('ready', () => logger.log('info', 'The bot is online!'));
-client.on('debug', m => logger.log('debug', m));
-client.on('warn', m => logger.log('warn', m));
-client.on('error', m => logger.log('error', m));
+client.on('ready', () => Logger.log('info', 'The bot is online!'));
+client.on('debug', m => Logger.log('debug', m));
+client.on('warn', m => Logger.log('warn', m));
+client.on('error', m => Logger.log('error', m));
 
-process.on('uncaughtException', error => logger.log('error', error));
+process.on('uncaughtException', error => Logger.log('error', error));
 
 client.login(BOT_TOKEN);
