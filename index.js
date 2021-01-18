@@ -55,9 +55,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         // check if it is cam required channel
         const reqCamChannels = DB.getCamRequiredDbConnection();
         const globalDbConn = DB.getGlobalDbConnection();
-        const camTimeout = globalDbConn.get('timeout');
+        const camTimeout = await globalDbConn.get('timeout');
         const camRequired = await reqCamChannels.get(newState.channel.id);
-        if (camRequired) {
+        if (camRequired === 'true') {
             setTimeout(async () => {
                 if (newState.member.voice.channelID && !newState.member.voice.selfVideo) {
                     // check if member is still connected to voice before dm'ing
