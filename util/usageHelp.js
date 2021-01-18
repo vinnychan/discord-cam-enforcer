@@ -5,8 +5,8 @@ exports.send = (channel, message) => {
             {
                 name: 'Usage Help',
                 value: message,
-            }
-        ]
-    }
-    channel.send({embed: embedObject});
-}
+            },
+        ],
+    };
+    channel.send({ embed: embedObject });
+};

@@ -6,11 +6,11 @@ const Error = require('./util/error');
 const Winston = require('winston');
 
 const logger = Winston.createLogger({
-	transports: [
-		new Winston.transports.Console(),
-		// new Winston.transports.File({ filename: 'log' }), // writes to file
-	],
-	format: Winston.format.printf(log => `[${log.level.toUpperCase()}] - ${log.message}`),
+    transports: [
+        new Winston.transports.Console(),
+        // new Winston.transports.File({ filename: 'log' }), // writes to file
+    ],
+    format: Winston.format.printf(log => `[${log.level.toUpperCase()}] - ${log.message}`),
 });
 
 const client = new Discord.Client();
@@ -19,25 +19,11 @@ client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-	client.commands.set(command.name, command);
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.name, command);
 }
 
 const bannedWordsMap = new Map();
-const camRequiredMap = new Map();
-
-function sendCmdError(channel, cmd) {
-    const embedObject = {
-        color: 0x990000,
-        fields: [
-            {
-                name: 'Error',
-                value: `Error trying to execute command: ${cmd}`,
-            }
-        ]
-    }
-    channel.send({embed: embedObject});
-}
 
 client.on('message', function(message) {
     if (message.author.bot) return;
@@ -46,7 +32,7 @@ client.on('message', function(message) {
     const commandBody = message.content.slice(PREFIX.length);
     const args = commandBody.trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
-    
+
     const command = client.commands.get(commandName)
         || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
@@ -55,10 +41,10 @@ client.on('message', function(message) {
     if (command.args && !args.length) {
         let reply = `You didn't provide any arguments, ${message.author}!`;
 
-		if (command.usage) {
-			reply = `${PREFIX}${command.name} ${command.usage}`;
-		}
-		return UsageHelp.send(message.channel, reply);
+        if (command.usage) {
+            reply = `${PREFIX}${command.name} ${command.usage}`;
+        }
+        return UsageHelp.send(message.channel, reply);
     }
 
     try {
@@ -80,8 +66,8 @@ client.on('message', function(message) {
         warnCount = bannedWordsMap.get(message.member.id);
         message.reply(`dont do that, you have been warned ${warnCount} times`);
         if (warnCount >= 5) {
-            const role = message.member.guild.roles.cache.find(role => role.name === 'muted');
-            message.member.roles.add(role);
+            const mutedRole = message.member.guild.roles.cache.find(role => role.name === 'muted');
+            message.member.roles.add(mutedRole);
         }
     }
 });
@@ -95,7 +81,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
                     await newState.member.voice.kick();
                     newState.member.send('please have camera on when in auntie gossip');
                 } catch (error) {
-                    console.error(`Unable to kick user: ${newState.member}`)
+                    logger.log('error', `Unable to kick user: ${newState.member}`);
                 }
             }
         }, 5000);

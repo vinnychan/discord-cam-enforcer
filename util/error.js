@@ -5,12 +5,12 @@ exports.send = (channel, description) => {
             {
                 name: 'Error',
                 value: description,
-            }
-        ]
-    }
-    channel.send({embed: embedObject});
-}
+            },
+        ],
+    };
+    channel.send({ embed: embedObject });
+};
 
 exports.sendCmdError = (channel, cmdName) => {
     this.send(channel, `Error trying to execute command: ${cmdName}`);
-}
+};

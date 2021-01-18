@@ -2,11 +2,11 @@ const { PREFIX } = require('../config.json');
 const UsageHelp = require('../util/usageHelp');
 
 module.exports = {
-	name: 'help',
-	description: 'List all of my commands or info about a specific command.',
-	aliases: ['commands'],
-	usage: '<command name>',
-	execute(message, args) {
+    name: 'help',
+    description: 'List all of my commands or info about a specific command.',
+    aliases: ['commands'],
+    usage: '<command name>',
+    execute(message, args) {
         const data = [];
         const { commands } = message.client;
 
@@ -31,5 +31,5 @@ module.exports = {
         }
         // message.channel.send(data, { split: true });
         UsageHelp.send(message.channel, data);
-	},
+    },
 };
