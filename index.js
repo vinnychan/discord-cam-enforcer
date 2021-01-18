@@ -1,25 +1,62 @@
-const Discord = require("discord.js");
-const config = require("./config.json");
+const fs = require('fs');
+const Discord = require('discord.js');
+const { BOT_TOKEN, PREFIX } = require('./config.json');
+const UsageHelp = require('./util/usageHelp');
+const Error = require('./util/error');
 
 const client = new Discord.Client();
+client.commands = new Discord.Collection();
 
-client.login(config.BOT_TOKEN);
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-const prefix = "!";
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	client.commands.set(command.name, command);
+}
 
 const bannedWordsMap = new Map();
+const camRequiredMap = new Map();
 
-client.on("message", function(message) {
+function sendCmdError(channel, cmd) {
+    const embedObject = {
+        color: 0x990000,
+        fields: [
+            {
+                name: 'Error',
+                value: `Error trying to execute command: ${cmd}`,
+            }
+        ]
+    }
+    channel.send({embed: embedObject});
+}
+
+client.on('message', function(message) {
     if (message.author.bot) return;
-    // if (!message.content.startsWith(prefix)) return;
+    if (!message.content.startsWith(PREFIX)) return;
 
-    // const commandBody = message.content.slice(prefix.length);
-    // const args = commandBody.split(' ');
-    // const command = args.shift().toLowerCase();
+    const commandBody = message.content.slice(PREFIX.length);
+    const args = commandBody.trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+    
+    const command = client.commands.get(commandName)
+        || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
-    if (message.content === "ping") {
-        const timeTaken = Date.now() - message.createdTimestamp;
-        message.reply(`Pong! This message had a latency of ${timeTaken}ms.`);    
+    if (!command) return;
+
+    if (command.args && !args.length) {
+        let reply = `You didn't provide any arguments, ${message.author}!`;
+
+		if (command.usage) {
+			reply = `${PREFIX}${command.name} ${command.usage}`;
+		}
+		return UsageHelp.send(message.channel, reply);
+    }
+
+    try {
+        command.execute(message, args);
+    } catch (error) {
+        console.error(error);
+        Error.sendCmdError(message.channel, command.name);
     }
 
     if (message.content === '屌') {
@@ -34,19 +71,26 @@ client.on("message", function(message) {
         warnCount = bannedWordsMap.get(message.member.id);
         message.reply(`dont do that, you have been warned ${warnCount} times`);
         if (warnCount >= 5) {
-            const role = message.member.guild.roles.cache.find(role => role.name === "muted");
+            const role = message.member.guild.roles.cache.find(role => role.name === 'muted');
             message.member.roles.add(role);
         }
     }
 });
 
-client.on("voiceStateUpdate", (oldState, newState) => {
+client.on('voiceStateUpdate', (oldState, newState) => {
     if (newState.channel && newState.channel.name === 'General') {
-        setTimeout(() => {
-            if (!newState.member.voice.selfVideo) {
-                newState.member.send("please have camera on when in auntie gossip");
-                newState.member.voice.kick();
+        setTimeout(async () => {
+            if (newState.member.voice.channelID && !newState.member.voice.selfVideo) {
+                // check if member is still connected to voice before dm'ing
+                try {
+                    await newState.member.voice.kick();
+                    newState.member.send('please have camera on when in auntie gossip');
+                } catch (error) {
+                    console.error(`Unable to kick user: ${newState.member}`)
+                }
             }
         }, 5000);
     }
 });
+
+client.login(BOT_TOKEN);
