@@ -22,6 +22,7 @@ const execute = (message, args) => {
         }
 
         // set channel
+        // await db.setCamRequire(channelID, args[1]);
         message.channel.send(`MOCK: set channel #${voiceChannel.name} to ${args[1]}`)
 }
 
