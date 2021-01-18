@@ -51,7 +51,7 @@ client.on('message', function(message) {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-    if (newState.channel && newState.channel.name === 'General') {
+    if (newState.channel) {
         // check if it is cam required channel
         const reqCamChannels = DB.getCamRequiredDbConnection();
         const globalDbConn = DB.getGlobalDbConnection();
@@ -62,7 +62,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                     // check if member is still connected to voice before dm'ing
                     try {
                         await newState.member.voice.kick();
-                        newState.member.send('Please have camera on when in auntie gossip');
+                        newState.member.send(`Please have camera on when in ${newState.channel.name}`);
                     } catch (error) {
                         Logger.log('error', `Unable to kick user: ${newState.member}`);
                     }

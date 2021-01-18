@@ -26,6 +26,7 @@ npm run redis:create
 !set-vc-require-cam <channelID> <true|false> // sets a voice channel to enforce cameras on
 ```
 ## Future
+* Add permission checks
 * Track user offences so they get banned from a specific voice channel
 
 ## License

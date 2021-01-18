@@ -13,7 +13,7 @@
     "redis:stop": "docker stop redis"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@keyv/redis": "^2.1.2",
     "discord.js": "^12.5.1",
