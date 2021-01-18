@@ -20,10 +20,11 @@ npm run redis:create
 ```
 
 ## Usage
+```
 !help
 !set-vc-require-cam-timeout 5000 // sets timeout to 5 seconds
 !set-vc-require-cam <channelID> <true|false> // sets a voice channel to enforce cameras on
-
+```
 ## Future
 * Track user offences so they get banned from a specific voice channel
 
