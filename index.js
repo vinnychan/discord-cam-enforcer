@@ -1,9 +1,10 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const { BOT_TOKEN, PREFIX } = require('./config.json');
+const { BOT_TOKEN, PREFIX, DEFAULT_CAM_TIMEOUT } = require('./config.json');
 const UsageHelp = require('./util/usageHelp');
 const Error = require('./util/error');
 const Winston = require('winston');
+const DB = require('./db/connections');
 
 const logger = Winston.createLogger({
     transports: [
@@ -12,6 +13,9 @@ const logger = Winston.createLogger({
     ],
     format: Winston.format.printf(log => `[${log.level.toUpperCase()}] - ${log.message}`),
 });
+
+// init DBs
+DB.init();
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -22,8 +26,6 @@ for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     client.commands.set(command.name, command);
 }
-
-const bannedWordsMap = new Map();
 
 client.on('message', function(message) {
     if (message.author.bot) return;
@@ -53,38 +55,28 @@ client.on('message', function(message) {
         logger.log('error', error);
         Error.sendCmdError(message.channel, command.name);
     }
-
-    if (message.content === '屌') {
-        let warnCount = 0;
-        if (bannedWordsMap.has(message.member.id)) {
-            warnCount = bannedWordsMap.get(message.member.id);
-            warnCount++;
-            bannedWordsMap.set(message.member.id, warnCount);
-        } else {
-            bannedWordsMap.set(message.member.id, 1);
-        }
-        warnCount = bannedWordsMap.get(message.member.id);
-        message.reply(`dont do that, you have been warned ${warnCount} times`);
-        if (warnCount >= 5) {
-            const mutedRole = message.member.guild.roles.cache.find(role => role.name === 'muted');
-            message.member.roles.add(mutedRole);
-        }
-    }
 });
 
-client.on('voiceStateUpdate', (oldState, newState) => {
+client.on('voiceStateUpdate', async (oldState, newState) => {
     if (newState.channel && newState.channel.name === 'General') {
-        setTimeout(async () => {
-            if (newState.member.voice.channelID && !newState.member.voice.selfVideo) {
-                // check if member is still connected to voice before dm'ing
-                try {
-                    await newState.member.voice.kick();
-                    newState.member.send('please have camera on when in auntie gossip');
-                } catch (error) {
-                    logger.log('error', `Unable to kick user: ${newState.member}`);
+        // check if it is cam required channel
+        const reqCamChannels = DB.getCamRequiredDbConnection();
+        const globalDbConn = DB.getGlobalDbConnection();
+        const camTimeout = globalDbConn.get('timeout');
+        const camRequired = await reqCamChannels.get(newState.channel.id);
+        if (camRequired) {
+            setTimeout(async () => {
+                if (newState.member.voice.channelID && !newState.member.voice.selfVideo) {
+                    // check if member is still connected to voice before dm'ing
+                    try {
+                        await newState.member.voice.kick();
+                        newState.member.send('please have camera on when in auntie gossip');
+                    } catch (error) {
+                        logger.log('error', `Unable to kick user: ${newState.member}`);
+                    }
                 }
-            }
-        }, 5000);
+            }, camTimeout || DEFAULT_CAM_TIMEOUT);
+        }
     }
 });
 

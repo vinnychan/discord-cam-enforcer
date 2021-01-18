@@ -6,14 +6,19 @@
   "scripts": {
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ."
-    
+    "lint": "eslint .",
+    "redis:create": "docker create -p 6379:6379 --name redis redis",
+    "redis:delete": "docker rm redis",
+    "redis:start": "docker start redis",
+    "redis:stop": "docker stop redis"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@keyv/redis": "^2.1.2",
     "discord.js": "^12.5.1",
     "eslint": "^7.18.0",
+    "keyv": "^4.0.3",
     "winston": "^3.3.3"
   }
 }

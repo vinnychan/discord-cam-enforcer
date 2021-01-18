@@ -1,13 +1,16 @@
 const { PREFIX } = require('../config.json');
 const UsageHelp = require('../util/usageHelp');
 const Error = require('../util/error');
+const DB = require('../db/connections');
 
 const name = 'set-vc-require-cam';
 const usage = '<channelID> <true|false>';
 const description = 'Set a voice channel to require video camera to be on. Kicks members that have camera off for more than the configured timeout';
 const aliases = ['set-cam', 'svrc'];
 
-const execute = (message, args) => {
+const camRequiredChannels = DB.getCamRequiredDbConnection();
+
+const execute = async (message, args) => {
     if (args.length !== 2 || (args[1] !== 'true' && args[1] !== 'false')) {
         return UsageHelp.send(message.channel, `${PREFIX}${name} ${usage}`);
     }
@@ -22,8 +25,14 @@ const execute = (message, args) => {
     }
 
     // set channel
-    // await db.setCamRequire(channelID, args[1]);
-    message.channel.send(`MOCK: set channel <#${voiceChannel.id}> to ${args[1]}`);
+    const success = await camRequiredChannels.set(voiceChannel.id, args[1]);
+    if (success) {
+        const res = await camRequiredChannels.get(voiceChannel.id);
+        message.channel.send(`Set channel <#${voiceChannel.id}> to ${res}`);
+    } else {
+        Error.send(`Failed to set channel <#${voiceChannel.id}> to ${args[1]}`);
+    }
+
 };
 
 module.exports = {
