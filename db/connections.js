@@ -1,5 +1,5 @@
 const Keyv = require('keyv');
-const Logger = require('../logger');
+const Logger = require('../logger').get();
 
 let camRequiredChannels = null;
 let global = null;

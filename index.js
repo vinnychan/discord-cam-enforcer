@@ -57,14 +57,16 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         const globalDbConn = DB.getGlobalDbConnection();
         const [camTimeout, camRequiredFlag] = await Promise.all([globalDbConn.get('timeout'), reqCamChannels.get(newState.channel.id)]);
         if (camRequiredFlag === 'true') {
+            const reqCamChannelName = newState.channel.name;
             setTimeout(async () => {
                 if (newState.member.voice.channelID && !newState.member.voice.selfVideo) {
                     // check if member is still connected to voice before dm'ing
                     try {
                         await newState.member.voice.kick();
-                        newState.member.send(`Please have camera on when in ${newState.channel.name}`);
+                        newState.member.send(`Please have camera on when in ${reqCamChannelName}`);
                     } catch (error) {
                         Logger.log('error', `Unable to kick user: ${newState.member}`);
+                        Logger.error(error);
                     }
                 }
             }, camTimeout || DEFAULT_CAM_TIMEOUT);
