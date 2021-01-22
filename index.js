@@ -33,6 +33,13 @@ client.on('message', function(message) {
 
     if (!command) return;
 
+    if (command.permissions) {
+        const authorPerms = message.channel.permissionsFor(message.author);
+        if (!authorPerms || !authorPerms.has(command.permissions)) {
+            return;
+        }
+    }
+
     if (command.args && !args.length) {
         let reply = `You didn't provide any arguments, ${message.author}!`;
 

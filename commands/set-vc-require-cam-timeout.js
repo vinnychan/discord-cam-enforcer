@@ -19,6 +19,7 @@ module.exports = {
     name,
     description,
     args: true,
+    permissions: 'KICK_MEMBERS',
     usage,
     aliases,
     execute,
