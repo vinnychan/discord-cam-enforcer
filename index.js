@@ -10,7 +10,11 @@ const Logger = require('./logger').get();
 // init DBs
 DB.init();
 
-const client = new Discord.Client();
+const intents = new Discord.Intents([
+    Discord.Intents.NON_PRIVILEGED,
+    'GUILD_MEMBERS',
+]);
+const client = new Discord.Client({ ws: { intents } });
 client.commands = new Discord.Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
